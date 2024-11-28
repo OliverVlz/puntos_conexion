@@ -25,6 +25,7 @@ def calcular_puntos():
         resultados = []
         area_habitaciones_total = 0
         
+        # Cálculo por habitación
         for i in range(num_habitaciones):
             area_habitacion = float(entries_area[i].get())
             area_habitaciones_total += area_habitacion
@@ -44,12 +45,13 @@ def calcular_puntos():
                               f"{int(puntos_tomas_habitacion)} tomas, "
                               f"Consumo: {int(consumo_total_habitacion)}W")
         
+        # Verificar si el área total de las habitaciones excede el área disponible
         if area_habitaciones_total > area_total:
             resultados_text.delete(1.0, tk.END)
-            resultados_text.insert(tk.END, "Error: El área total de las habitaciones excede el área total.\n")
+            resultados_text.insert(tk.END, "Error: El área total de las habitaciones excede el área total disponible.\n")
             return
         
-        # Calcular puntos y consumo de baños
+        # Cálculo por baños
         puntos_luz_banos = num_banos
         puntos_tomas_banos = num_banos
         consumo_luz_banos = puntos_luz_banos * 10
@@ -64,16 +66,21 @@ def calcular_puntos():
                           f"{int(puntos_tomas_banos)} tomas, "
                           f"Consumo: {int(consumo_total_banos)}W")
         
+        # No se suman puntos de luz y tomas por número de habitaciones, corrigiendo el error anterior
+        # Ajuste por demanda alta: Solo para baños, no para habitaciones
         if demanda_consumo > 1000:
-            puntos_luz_total += num_habitaciones
-            puntos_tomas_total += num_habitaciones
+            puntos_luz_total += num_banos  # Agregar 1 punto de luz por baño adicional
+            puntos_tomas_total += num_banos  # Agregar 1 toma por baño adicional
         
+        # Calcular consumos totales
         consumo_total_luz = puntos_luz_total * 10
         consumo_total_tomas = puntos_tomas_total * 100
         consumo_total = consumo_total_luz + consumo_total_tomas
         
+        # Clasificar iluminación según área total
         clasificacion = clasificar_iluminacion(area_total)
         
+        # Agregar totales a los resultados
         resultados.append(f"\nTotal puntos de luz: {int(puntos_luz_total)}")
         resultados.append(f"Total tomas: {int(puntos_tomas_total)}")
         resultados.append(f"Clasificación: {clasificacion}")
@@ -81,6 +88,7 @@ def calcular_puntos():
         resultados.append(f"Consumo tomas: {int(consumo_total_tomas)}W")
         resultados.append(f"Consumo total: {int(consumo_total)}W")
         
+        # Mostrar resultados en el cuadro de texto
         resultados_text.delete(1.0, tk.END)
         resultados_text.insert(tk.END, "\n".join(resultados))
     
