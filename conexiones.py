@@ -1,4 +1,19 @@
 import tkinter as tk
+import math
+
+# Declarar la variable global
+entries_area = []
+
+def clasificar_iluminacion(area_total):
+    if area_total < 50:
+        return "Mínimo"
+    elif 50 <= area_total < 100:
+        return "Medio"
+    else:
+        return "Elevado"
+
+import tkinter as tk
+import math
 
 # Declarar la variable global
 entries_area = []
@@ -21,6 +36,8 @@ def calcular_puntos():
         
         puntos_luz_total = 0
         puntos_tomas_total = 0
+        consumo_total_luz = 0
+        consumo_total_tomas = 0
         
         resultados = []
         area_habitaciones_total = 0
@@ -30,15 +47,34 @@ def calcular_puntos():
             area_habitacion = float(entries_area[i].get())
             area_habitaciones_total += area_habitacion
             
-            puntos_luz_habitacion = area_habitacion // 10
-            puntos_tomas_habitacion = area_habitacion // 10
-            
+            # Calcular puntos de luz (1 punto cada 10 m², redondeando hacia arriba)
+            puntos_luz_habitacion = math.ceil(area_habitacion / 10)
+
+            # Calcular tomas de corriente
+            # Basado en área: 1 toma cada 10 m²
+            puntos_tomas_habitacion_area = math.ceil(area_habitacion / 10)
+
+            # Basado en perímetro (asumiendo forma cuadrada)
+            lado = math.sqrt(area_habitacion)
+            perimetro = 4 * lado
+            puntos_tomas_habitacion_perimetro = math.ceil(perimetro / 5)
+
+            # Tomar el mayor valor entre los dos criterios para determinar las tomas
+            puntos_tomas_habitacion = max(puntos_tomas_habitacion_area, puntos_tomas_habitacion_perimetro)
+
+            # Actualizar los totales
             puntos_luz_total += puntos_luz_habitacion
             puntos_tomas_total += puntos_tomas_habitacion
             
-            consumo_luz_habitacion = puntos_luz_habitacion * 10
-            consumo_tomas_habitacion = puntos_tomas_habitacion * 100
+            # Calcular consumo por habitación
+            consumo_luz_habitacion = puntos_luz_habitacion * 10  # 10 W por punto de luz
+            consumo_tomas_habitacion = puntos_tomas_habitacion * 100  # 100 W por toma
             
+            # Acumular los consumos totales
+            consumo_total_luz += consumo_luz_habitacion
+            consumo_total_tomas += consumo_tomas_habitacion
+            
+            # Calcular consumo total por habitación
             consumo_total_habitacion = consumo_luz_habitacion + consumo_tomas_habitacion
             
             resultados.append(f"Habitación {i + 1}: {int(puntos_luz_habitacion)} puntos de luz, "
@@ -54,27 +90,22 @@ def calcular_puntos():
         # Cálculo por baños
         puntos_luz_banos = num_banos
         puntos_tomas_banos = num_banos
-        consumo_luz_banos = puntos_luz_banos * 10
-        consumo_tomas_banos = puntos_tomas_banos * 100
+        consumo_luz_banos = puntos_luz_banos * 10  # 10 W por punto de luz en baños
+        consumo_tomas_banos = puntos_tomas_banos * 100  # 100 W por toma en baños
         consumo_total_banos = consumo_luz_banos + consumo_tomas_banos
         
+        # Actualizar los totales
         puntos_luz_total += puntos_luz_banos
         puntos_tomas_total += puntos_tomas_banos
+        consumo_total_luz += consumo_luz_banos
+        consumo_total_tomas += consumo_tomas_banos
         
         resultados.append(f"\nBaños: {num_banos} baños, "
                           f"{int(puntos_luz_banos)} puntos de luz, "
                           f"{int(puntos_tomas_banos)} tomas, "
                           f"Consumo: {int(consumo_total_banos)}W")
         
-        # No se suman puntos de luz y tomas por número de habitaciones, corrigiendo el error anterior
-        # Ajuste por demanda alta: Solo para baños, no para habitaciones
-        if demanda_consumo > 1000:
-            puntos_luz_total += num_banos  # Agregar 1 punto de luz por baño adicional
-            puntos_tomas_total += num_banos  # Agregar 1 toma por baño adicional
-        
-        # Calcular consumos totales
-        consumo_total_luz = puntos_luz_total * 10
-        consumo_total_tomas = puntos_tomas_total * 100
+        # Calcular consumo total final
         consumo_total = consumo_total_luz + consumo_total_tomas
         
         # Clasificar iluminación según área total
