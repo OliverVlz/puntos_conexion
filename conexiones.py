@@ -6,13 +6,13 @@ entry_area_habitacion = []
 entry_area_bano = []
 
 def calcular_puntos():
-    global entry_area_habitacion, entry_area_bano
     try:
         num_habitaciones = int(entry_num_habitaciones.get())
         num_banos = int(entry_num_banos.get())
-        num_divisiones = num_habitaciones + num_banos
+        area_total = float(entry_area_total.get())
         demanda_consumo = float(entry_demandas.get())
         watts_bombillos = int(entry_watts_bombillos.get())
+        iluminacion_type = bool(entry_iluminacion.get())
         
         puntos_luz_total = 0
         puntos_tomas_total = 0
@@ -23,7 +23,11 @@ def calcular_puntos():
         iluminacion_incandenscente = False
         iluminacion_fluorecente = False
         val_iluminacion = 0
-           
+
+        area_habitacion = []
+        area_bano = []
+        perimetro_habitacion = []
+        perimetro_bano = []   
         resultados = []
         area_habitaciones_total = 0
 
@@ -34,41 +38,23 @@ def calcular_puntos():
                     return "Medio"
                 else:
                     return "Elevado"
-                
-        def area_individual(lado1, lado2, num_total):
-            area = []
-            for i in range(num_total):
-                param1 = float(lado1[i].get())
-                param2 = float(lado2[i].get())
-                area.append(param1 * param2)
-            return area
-
-        def perimetro_individual(lado1, lado2, num_total):
-            perimetro = []
-            for i in range(num_total):
-                param1 = float(lado1[i].get())
-                param2 = float(lado2[i].get())
-                perimetro.append(2 * (param1 + param2))
-            return perimetro
-        
-        def area_total(area_habitacion, area_bano):
-            
-        
-        def perimetro_total(perimetro_habitacion):
-            return perimetro_total
-        
+              
         # Cálculo de habitaciones
         for i in range(num_habitaciones):
-            lado1 = float(entry_lado1_habitacion[i].get())
-            lado2 = float(entry_lado2_habitacion[i].get())
-            area_habitacion = lado1 * lado2
-            perimetro_habitacion = 2 * (lado1 + lado2)
-            perimetro_habitacion_total += perimetro_habitacion
-            area_habitacion_total += area_habitacion
-            
+            lado_h1 = float(entry_lado1_habitacion[i].get())
+            lado_h2 = float(entry_lado2_habitacion[i].get())
+            area_habitacion.append(lado_h1 * lado_h2)
+            area_habitacion_total += lado_h1 * lado_h2
+            perimetro_habitacion.append(2 * (lado_h1 + lado_h2))
+            perimetro_habitacion_total += 2 * (lado_h1 + lado_h2)
+                       
         for i in range(num_banos):
-            area_bano = float(entry_area_bano[i].get())
-            area_bano_total += area_bano
+            lado_b1 = float(entry_lado1_bano[i].get())
+            lado_b2 = float(entry_lado2_bano[i].get())
+            area_bano.append(lado_b1 * lado_b2)
+            area_bano_total += lado_b1 * lado_b2
+            perimetro_bano.append(2 * (lado_b1 + lado_b2))
+            perimetro_bano_total += 2 * (lado_b1 + lado_b2)
 
         area_total = area_habitacion_total + area_bano_total 
         densidad_carga = nivel_consumo(area_total, demanda_consumo)
@@ -91,60 +77,28 @@ def calcular_puntos():
                 val_iluminacion = 8
 
         for i in range(num_habitaciones):
-            area_habitacion = float(entry_area_habitacion[i].get())
-            
-            # Calcular puntos de luz
+            # Calcular puntos de luz **************************************************************
             "Si no se conocen datos precisos, la potencia nominal de las luminarias"
             "debe tenerse como mínimo 1.8 veces la potencia nominal de la lámpara en vatios."
-            potencia_luz_habitacion = val_iluminacion * area_habitacion * 1.8
-            puntos_luz_habitacion = math.ceil(potencia_luz_habitacion / watts_bombillos)
+            consumo_luz_habitacion = val_iluminacion * area_habitacion[i] * 1.8 # Consumo de Luz por habitación
+            puntos_luz_habitacion = math.ceil(consumo_luz_habitacion / watts_bombillos)
+            puntos_luz_habitacion_total += puntos_luz_habitacion
 
-            # Calcular tomas de corriente
-            # Basado en área: 1 toma cada 10 m²
-            puntos_tomas_habitacion_area = math.ceil(area_habitacion / 10)
-
-            # Basado en perímetro (asumiendo forma cuadrada)
-            lado = math.sqrt(area_habitacion)
-            perimetro = 4 * lado
-            puntos_tomas_habitacion_perimetro = math.ceil(perimetro / 5)
+            # Calcular tomas de corriente **************************************************************
+            puntos_tomas_habitacion_area = math.ceil(area_habitacion[i] / 10) # Basado en área: 1 toma cada 10 m²
+            puntos_tomas_habitacion_perimetro = math.ceil(perimetro_habitacion[i] / 5)
 
             # Tomar el mayor valor entre los dos criterios para determinar las tomas
-            puntos_tomas_habitacion = max(puntos_tomas_habitacion_area, puntos_tomas_habitacion_perimetro)
+            puntos_tomas_habitacion = max(puntos_tomas_habitacion_area, puntos_tomas_habitacion_perimetro) 
+            consumo_tomas_habitacion = puntos_tomas_habitacion * 200  # Consumo de tomas por habitación          
+            puntos_tomas_habitacion_total += puntos_tomas_habitacion
 
-
-        # Cálculo por divisiones
-        for i in range(num_divisiones):
-            
-            # Calcular puntos de luz (1 punto cada 10 m², redondeando hacia arriba)
-            puntos_luz_habitacion = math.ceil(area_habitacion / 10)
-
-            # Calcular tomas de corriente
-            # Basado en área: 1 toma cada 10 m²
-            puntos_tomas_habitacion_area = math.ceil(area_habitacion / 10)
-
-            # Basado en perímetro (asumiendo forma cuadrada)
-            lado = math.sqrt(area_habitacion)
-            perimetro = 4 * lado
-            puntos_tomas_habitacion_perimetro = math.ceil(perimetro / 5)
-
-            # Tomar el mayor valor entre los dos criterios para determinar las tomas
-            puntos_tomas_habitacion = max(puntos_tomas_habitacion_area, puntos_tomas_habitacion_perimetro)
-
-            # Actualizar los totales
-            puntos_luz_total += puntos_luz_habitacion
-            puntos_tomas_total += puntos_tomas_habitacion
-            
-            # Calcular consumo por habitación
-            consumo_luz_habitacion = puntos_luz_habitacion * 10  # 10 W por punto de luz
-            consumo_tomas_habitacion = puntos_tomas_habitacion * 200  # 100 W por toma
-            
-            # Acumular los consumos totales
-            consumo_total_luz += consumo_luz_habitacion
-            consumo_total_tomas += consumo_tomas_habitacion
-            
-            # Calcular consumo total por habitación
+            # Calcular consumo *************************************************************************
             consumo_total_habitacion = consumo_luz_habitacion + consumo_tomas_habitacion
-            
+            consumo_luz_habitacion_total += consumo_luz_habitacion
+            consumo_tomas_habitacion_total += consumo_tomas_habitacion
+            consumo_potencia_total_habitacion = consumo_luz_habitacion_total + consumo_tomas_habitacion_total
+
             resultados.append(f"Habitación {i + 1}: {int(puntos_luz_habitacion)} puntos de luz, "
                               f"{int(puntos_tomas_habitacion)} tomas, "
                               f"Consumo: {int(consumo_total_habitacion)}W")
